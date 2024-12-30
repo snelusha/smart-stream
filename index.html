@@ -1,0 +1,73 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC Webcam</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      button {
+        padding: 10px 20px;
+        margin: 10px 5px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      video,
+      audio {
+        width: 100%;
+        max-height: 480px;
+      }
+
+      .option {
+        margin: 15px 0;
+      }
+
+      #media {
+        max-width: 1280px;
+        width: 100%;
+        margin: 20px auto;
+      }
+
+      #stats {
+        margin: 20px 0;
+        font-size: 18px;
+      }
+
+      .stat {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="option">
+      <input id="use-stun" type="checkbox" />
+      <label for="use-stun">Use STUN server</label>
+    </div>
+    <div>
+      <button id="start" onclick="start()">Start</button>
+      <button id="stop" style="display: none" onclick="stop()">Stop</button>
+    </div>
+
+    <div id="media">
+      <h2>Media</h2>
+      <audio id="audio" autoplay="true"></audio>
+      <video id="video" autoplay="true" playsinline="true"></video>
+    </div>
+
+    <div id="stats">
+      <h2>Data Usage</h2>
+      <p class="stat" id="upload">Upload: 0 KB</p>
+      <p class="stat" id="download">Download: 0 KB</p>
+    </div>
+
+    <script src="client.js"></script>
+  </body>
+</html>
