@@ -2,19 +2,22 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 interface Config {
-  endpoint: string;
+  address: string | null;
+  stun: boolean;
 }
 
 interface ConfigState {
   config: Config;
-  setConfig: (config: Config) => void;
+  setConfig: (config: Partial<Config>) => void;
+  hasHydrated: boolean;
 }
 
 export const useConfigStore = create<ConfigState>()(
   persist(
     (set, get) => ({
       config: {
-        endpoint: "",
+        address: null,
+        stun: false,
       },
       setConfig: (config) =>
         set({
@@ -23,10 +26,15 @@ export const useConfigStore = create<ConfigState>()(
             ...config,
           },
         }),
+      hasHydrated: false,
     }),
     {
       name: "config-storage",
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        state.hasHydrated = true;
+      },
     },
   ),
 );
