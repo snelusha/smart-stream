@@ -1,5 +1,7 @@
 "use client";
 
+import * as React from "react";
+
 import Link from "next/link";
 
 import { z } from "zod";
@@ -7,7 +9,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { Settings2Icon } from "lucide-react";
+import { Settings2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,18 +45,25 @@ const configureFormSchema = z.object({
 type ConfigureFormValues = z.infer<typeof configureFormSchema>;
 
 export default function NavigationBar() {
+  const configStore = useConfigStore();
+
   const form = useForm<ConfigureFormValues>({
     resolver: zodResolver(configureFormSchema),
     defaultValues: {
-      address: "",
-      stun: false,
+      address: configStore.config.address || "",
+      stun: configStore.config.stun,
     },
   });
 
-  const configStore = useConfigStore();
+  React.useEffect(() => {
+    form.reset({
+      address: configStore.config.address || "",
+      stun: configStore.config.stun,
+    });
+  }, [form, configStore.config]);
 
   async function onSubmit(data: ConfigureFormValues) {
-    configStore.setConfig({ address: data.address });
+    configStore.setConfig({ address: data.address, stun: data.stun });
   }
 
   return (
@@ -69,7 +78,7 @@ export default function NavigationBar() {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" size="icon">
-                <Settings2Icon />
+                <Settings2 />
               </Button>
             </DialogTrigger>
             <DialogContent>
