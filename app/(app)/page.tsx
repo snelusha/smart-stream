@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { Bolt, LoaderCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 import { useConfigStore } from "@/stores/config";
 
@@ -26,7 +26,6 @@ async function negotiate(address: string, pc: RTCPeerConnection) {
   await new Promise<void>((resolve) => {
     if (pc.iceGatheringState === "complete") return resolve();
     const checkState = () => {
-      console.log(pc.iceGatheringState);
       if (pc.iceGatheringState === "complete") {
         pc.removeEventListener("icegatheringstatechange", checkState);
         resolve();
@@ -35,24 +34,32 @@ async function negotiate(address: string, pc: RTCPeerConnection) {
     pc.addEventListener("icegatheringstatechange", checkState);
   });
 
-  const response = await fetch(`${address}/offer`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      sdp: pc.localDescription?.sdp,
-      type: pc.localDescription?.type,
-    }),
-  });
+  try {
+    const response = await fetch(`${address}/offer`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sdp: pc.localDescription?.sdp,
+        type: pc.localDescription?.type,
+      }),
+    });
 
-  const answer = await response.json();
-  await pc.setRemoteDescription(answer);
+    const answer = await response.json();
+    await pc.setRemoteDescription(answer);
+  } catch (_) {
+    toast("Unable to connect to the server!", {
+      description: "Configure the signaling server correctly!",
+    });
+  }
 }
 
 export default function Page() {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const pc = React.useRef<RTCPeerConnection | null>(null);
+
+  const [isConnected, setIsConnected] = React.useState(false);
 
   const configStore = useConfigStore();
 
@@ -65,7 +72,6 @@ export default function Page() {
       peerConnection.addEventListener("track", (event) => {
         if (event.track.kind === "video" && videoRef.current) {
           videoRef.current.srcObject = new MediaStream([event.track]);
-          console.log("track", event.track);
         }
       });
 
@@ -77,10 +83,6 @@ export default function Page() {
 
     start();
   }, [configStore.hasHydrated, configStore.config]);
-
-  React.useEffect(() => {
-    console.log("mm", pc.current?.iceConnectionState);
-  }, [pc.current?.iceConnectionState]);
 
   return (
     <main className="relative grid min-h-[var(--main-content-height)] px-6">
@@ -97,15 +99,14 @@ export default function Page() {
             ) : true ? (
               <video
                 ref={videoRef}
-                className="w-full h-full rounded-xl"
+                className="absolute inset-0 h-full w-full rounded-xl"
                 autoPlay
                 playsInline
                 muted
-                controls
               />
             ) : (
               <>
-                <LoaderCircle className="size-5 text-muted-foreground animate-spin" />
+                <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
                 <h1 className="mt-2 text-muted-foreground">
                   Connecting to the server!
                 </h1>
@@ -114,8 +115,8 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <footer className="absolute inset-x-0 bottom-4 flex flex-col items-center">
-        <p className="text-muted-foreground">
+      <footer className="absolute inset-x-0 bottom-2.5 flex flex-col items-center">
+        <p className="text-muted-foreground opacity-80">
           Made by a&nbsp;
           <span className="font-medium text-secondary-foreground">human</span>
           &nbsp;in earth!

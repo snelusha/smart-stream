@@ -32,8 +32,6 @@ import { useConfigStore } from "@/stores/config";
 
 import { cn } from "@/styles/utils";
 
-import type { SubmitHandler } from "react-hook-form";
-
 const configureFormSchema = z.object({
   address: z.string().url(),
   stun: z.boolean().default(false).optional(),
