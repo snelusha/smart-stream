@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogClose,
@@ -34,7 +33,12 @@ import { cn } from "@/styles/utils";
 
 const configureFormSchema = z.object({
   address: z.string().url(),
-  stun: z.boolean().default(false).optional(),
+  stun: z.string().optional(),
+  turn: z.object({
+    url: z.string(),
+    username: z.string(),
+    password: z.string(),
+  }),
 });
 
 type ConfigureFormValues = z.infer<typeof configureFormSchema>;
@@ -44,22 +48,30 @@ interface ConfigurationModalProps {
   onClose: () => void;
 }
 
+function intializeFormValues(config: ConfigureFormValues) {
+  return {
+    address: config.address ?? "",
+    stun: config.stun ?? "",
+    turn: {
+      url: config.turn.url ?? "",
+      username: config.turn.username ?? "",
+      password: config.turn.password ?? "",
+    },
+  };
+}
+
 export function ConfigurationModal({ open, onClose }: ConfigurationModalProps) {
   const configStore = useConfigStore();
 
   const form = useForm<ConfigureFormValues>({
     resolver: zodResolver(configureFormSchema),
-    defaultValues: {
-      address: configStore.config.address || "",
-      stun: configStore.config.stun,
-    },
+    defaultValues: intializeFormValues(
+      configStore.config as ConfigureFormValues,
+    ),
   });
 
   React.useEffect(() => {
-    form.reset({
-      address: configStore.config.address || "",
-      stun: configStore.config.stun,
-    });
+    form.reset(intializeFormValues(configStore.config as ConfigureFormValues));
   }, [configStore.config]);
 
   const handleOpenChange = (open: boolean) => {
@@ -113,24 +125,82 @@ export function ConfigurationModal({ open, onClose }: ConfigurationModalProps) {
               <FormField
                 control={form.control}
                 name="stun"
-                render={({ field }) => (
-                  <FormItem className="flex items-start space-x-3 space-y-0">
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>STUN server</FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                      <Input
+                        className={cn(
+                          fieldState.error &&
+                            "border-destructive focus-visible:ring-destructive",
+                        )}
+                        placeholder="stun:stun.l.google.com:19302"
+                        {...field}
                       />
                     </FormControl>
-                    <div className="space-y-2 leading-none">
-                      <FormLabel>Use STUN server</FormLabel>
-                      <FormDescription>
-                        Enable this option to use a STUN server for NAT
-                        traversal.
-                      </FormDescription>
-                    </div>
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="turn.url"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>TURN server</FormLabel>
+                    <FormControl>
+                      <Input
+                        className={cn(
+                          fieldState.error &&
+                            "border-destructive focus-visible:ring-destructive",
+                        )}
+                        placeholder="turn:turn.example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="turn.username"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input
+                          className={cn(
+                            fieldState.error &&
+                              "border-destructive focus-visible:ring-destructive",
+                          )}
+                          placeholder="sudo"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="turn.password"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          className={cn(
+                            fieldState.error &&
+                              "border-destructive focus-visible:ring-destructive",
+                          )}
+                          type="password"
+                          placeholder="secret"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
             <DialogFooter className="mt-4">
               <DialogClose asChild>

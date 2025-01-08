@@ -8,12 +8,23 @@ import { toast } from "sonner";
 
 import { useConfigStore } from "@/stores/config";
 
-function createPeerConnection(useStun: boolean) {
-  const config: RTCConfiguration = {};
+import type { Config } from "@/stores/config";
 
-  if (useStun) config.iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+function createPeerConnection(config: Config) {
+  const _config: RTCConfiguration = {};
 
-  return new RTCPeerConnection(config);
+  const iceServers: RTCIceServer[] = [];
+
+  if (config.stun) iceServers.push({ urls: config.stun });
+  if (config.turn.url)
+    iceServers.push({
+      urls: config.turn.url,
+      username: config.turn.username,
+      credential: config.turn.password,
+    });
+
+  _config.iceServers = iceServers;
+  return new RTCPeerConnection(_config);
 }
 
 async function negotiate(address: string, pc: RTCPeerConnection) {
@@ -67,7 +78,7 @@ export default function Page() {
     if (!configStore.hasHydrated) return;
 
     const start = async () => {
-      const peerConnection = createPeerConnection(true);
+      const peerConnection = createPeerConnection(configStore.config);
 
       peerConnection.addEventListener("track", (event) => {
         if (event.track.kind === "video" && videoRef.current) {
