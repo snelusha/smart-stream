@@ -1,9 +1,14 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-interface Config {
-  address: string | null;
-  stun: boolean;
+export interface Config {
+  address: string | undefined;
+  stun: string | undefined;
+  turn: {
+    url: string | undefined;
+    username: string | undefined;
+    password: string | undefined;
+  };
 }
 
 interface ConfigState {
@@ -16,8 +21,13 @@ export const useConfigStore = create<ConfigState>()(
   persist(
     (set, get) => ({
       config: {
-        address: null,
-        stun: false,
+        address: undefined,
+        stun: undefined,
+        turn: {
+          url: undefined,
+          username: undefined,
+          password: undefined,
+        },
       },
       setConfig: (config) =>
         set({
