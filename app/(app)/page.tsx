@@ -10,6 +10,19 @@ import { useConfigStore } from "@/stores/config";
 
 import type { Config } from "@/stores/config";
 
+type LoadingState = "negotiating" | "loading" | null;
+
+function getLoadingMessage(state: LoadingState) {
+  switch (state) {
+    case "negotiating":
+      return "Negotiating with the server!";
+    case "loading":
+      return "Loading the image!";
+    default:
+      return "Loading!";
+  }
+}
+
 function createPeerConnection(config: Config) {
   const _config: RTCConfiguration = {};
 
@@ -69,7 +82,8 @@ export default function Page() {
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const pc = React.useRef<RTCPeerConnection | null>(null);
 
-  const [isConnected, setIsConnected] = React.useState(false);
+  const [loadingState, setLoadingState] =
+    React.useState<LoadingState>("negotiating");
 
   const configStore = useConfigStore();
 
@@ -85,19 +99,45 @@ export default function Page() {
         }
       });
 
+      const onConnectionStateChange = () => {
+        const state = peerConnection.iceConnectionState;
+        if (["disconnected", "failed", "closed"].includes(state)) {
+          setLoadingState("loading");
+          toast("Connection lost!", {
+            description: "Reconnecting to the server!",
+          });
+        }
+      };
+
+      peerConnection.addEventListener(
+        "iceconnectionstatechange",
+        onConnectionStateChange,
+      );
+
       pc.current = peerConnection;
 
       if (!configStore.config.address) return;
       await negotiate(configStore.config.address, peerConnection);
+      setLoadingState("loading");
     };
 
     start();
+
+    return () => {
+      if (!pc.current) return;
+      pc.current.close();
+      pc.current = null;
+    };
   }, [configStore.hasHydrated, configStore.config]);
+
+  const handleVideoLoaded = () => {
+    setLoadingState(null);
+  };
 
   return (
     <main className="relative grid min-h-[var(--main-content-height)] px-6">
       <div className="mt-10 flex w-full flex-col items-center">
-        <div className="relative grid aspect-video w-full max-w-3xl place-items-center rounded-xl bg-muted">
+        <div className="relative grid aspect-video w-full max-w-3xl place-items-center overflow-clip rounded-xl bg-muted">
           <div className="flex flex-col items-center">
             {configStore.hasHydrated && !configStore.config.address ? (
               <>
@@ -106,20 +146,26 @@ export default function Page() {
                   Waiting for configuration!
                 </h1>
               </>
-            ) : true ? (
-              <video
-                ref={videoRef}
-                className="absolute inset-0 h-full w-full rounded-xl"
-                autoPlay
-                playsInline
-                muted
-              />
             ) : (
               <>
-                <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
-                <h1 className="mt-2 text-muted-foreground">
-                  Connecting to the server!
-                </h1>
+                <video
+                  ref={videoRef}
+                  className="absolute inset-0 h-full w-full rounded-xl"
+                  autoPlay
+                  playsInline
+                  muted
+                  onLoadedData={handleVideoLoaded}
+                  onWaiting={() => setLoadingState("loading")}
+                  onPlaying={() => setLoadingState(null)}
+                />
+                {loadingState && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
+                    <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
+                    <h1 className="mt-2 text-muted-foreground">
+                      {getLoadingMessage(loadingState)}
+                    </h1>
+                  </div>
+                )}
               </>
             )}
           </div>
