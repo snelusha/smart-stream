@@ -171,13 +171,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <footer className="absolute inset-x-0 bottom-2.5 flex flex-col items-center">
-        <p className="text-muted-foreground opacity-80">
-          Made by a&nbsp;
-          <span className="font-medium text-secondary-foreground">human</span>
-          &nbsp;in earth!
-        </p>
-      </footer>
     </main>
   );
 }
