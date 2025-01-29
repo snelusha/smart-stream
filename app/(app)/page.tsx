@@ -137,12 +137,12 @@ export default function Page() {
   return (
     <main className="relative grid min-h-[var(--main-content-height)] px-6">
       <div className="mt-10 flex w-full flex-col items-center">
-        <div className="relative grid aspect-video w-full max-w-3xl place-items-center overflow-clip rounded-xl bg-muted">
+        <div className="bg-muted relative grid aspect-video w-full max-w-3xl place-items-center overflow-clip rounded-xl">
           <div className="flex flex-col items-center">
             {configStore.hasHydrated && !configStore.config.address ? (
               <>
-                <Bolt className="size-5 text-muted-foreground" />
-                <h1 className="mt-2 text-muted-foreground">
+                <Bolt className="text-muted-foreground size-5" />
+                <h1 className="text-muted-foreground mt-2">
                   Waiting for configuration!
                 </h1>
               </>
@@ -159,15 +159,16 @@ export default function Page() {
                   onPlaying={() => setLoadingState(null)}
                 />
                 {loadingState && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted">
-                    <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
-                    <h1 className="mt-2 text-muted-foreground">
+                  <div className="bg-muted absolute inset-0 flex flex-col items-center justify-center">
+                    <LoaderCircle className="text-muted-foreground size-5 animate-spin" />
+                    <h1 className="text-muted-foreground mt-2">
                       {getLoadingMessage(loadingState)}
                     </h1>
                   </div>
                 )}
               </>
             )}
+            <div className="focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-1 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"></div>
           </div>
         </div>
       </div>
