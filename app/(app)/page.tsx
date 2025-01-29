@@ -135,7 +135,7 @@ export default function Page() {
   };
 
   return (
-    <main className="relative grid min-h-[var(--main-content-height)] px-6">
+    <main className="relative grow grid px-6">
       <div className="mt-10 flex w-full flex-col items-center">
         <div className="bg-muted relative grid aspect-video w-full max-w-3xl place-items-center overflow-clip rounded-xl">
           <div className="flex flex-col items-center">

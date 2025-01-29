@@ -80,7 +80,6 @@
     --radius: 0.5rem;
 
     --navigation-bar-height: 4rem;
-    --main-content-height: calc(100dvh - var(--navigation-bar-height));
   }
 }
 
