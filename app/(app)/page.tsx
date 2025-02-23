@@ -154,6 +154,7 @@ export default function Page() {
                   autoPlay
                   playsInline
                   muted
+                  controls
                   onLoadedData={handleVideoLoaded}
                   onWaiting={() => setLoadingState("loading")}
                   onPlaying={() => setLoadingState(null)}
